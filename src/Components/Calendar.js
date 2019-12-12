@@ -12,10 +12,6 @@ const Calendar = () => {
 		fetchTrainings();
 	}, []);
 
-	useEffect(() => {
-		console.log(trainings);
-	});
-
 	const fetchTrainings = () => {
 		let trainingInter = [];
 		fetch("https://customerrest.herokuapp.com/api/trainings")
