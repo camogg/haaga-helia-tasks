@@ -1,9 +1,9 @@
 import React from "react";
 import { Route, Switch } from "react-router-dom";
 import { makeStyles } from "@material-ui/core/styles";
-import { Typography } from "@material-ui/core";
 
 import Customers from "./Customers";
+import Calendar from "./Calendar";
 
 const useStyles = makeStyles(theme => ({
 	content: {
@@ -21,12 +21,9 @@ const Content = props => {
 		<main className={classes.content}>
 			<div className={classes.toolbar} />
 			<Switch>
-				<Route
-					exact
-					path="/"
-					component={_ => <Typography>Dashboard</Typography>}
-				/>
+				<Route exact path="/" component={Customers} />
 				<Route path="/customers" component={Customers} />
+				<Route path="/calendar" component={Calendar} />
 			</Switch>
 		</main>
 	);

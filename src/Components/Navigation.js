@@ -13,7 +13,7 @@ import {
 	ListItemText
 } from "@material-ui/core";
 import PeopleIcon from "@material-ui/icons/People";
-import SportsIcon from "@material-ui/icons/Sports";
+import EventIcon from "@material-ui/icons/Event";
 
 const drawerWidth = 240;
 
@@ -69,15 +69,15 @@ const Navigation = props => {
 						<ListItemText primary="Customers" />
 					</ListItem>
 					<ListItem
-						to={"/trainings"}
+						to={"/calendar"}
 						component={Link}
-						selected={props.location.pathname === "/trainings"}
+						selected={props.location.pathname === "/calendar"}
 						button
 					>
 						<ListItemIcon>
-							<SportsIcon />
+							<EventIcon />
 						</ListItemIcon>
-						<ListItemText primary="Trainings" />
+						<ListItemText primary="Calendar" />
 					</ListItem>
 				</List>
 			</Drawer>

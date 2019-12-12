@@ -1,26 +1,19 @@
 import React from "react";
-import PropTypes from "prop-types";
-import clsx from "clsx";
-import { lighten, makeStyles, fade } from "@material-ui/core/styles";
+import { makeStyles } from "@material-ui/core/styles";
 import {
 	Table,
 	TableBody,
 	TableCell,
-	TableHead,
 	TablePagination,
 	TableRow,
-	TableSortLabel,
-	Toolbar,
-	Typography,
 	Paper,
 	Checkbox,
-	IconButton,
-	Tooltip,
-	CircularProgress,
-	InputBase
+	CircularProgress
 } from "@material-ui/core";
-import DeleteIcon from "@material-ui/icons/Delete";
-import SearchIcon from "@material-ui/icons/Search";
+
+import EnhancedTableToolbar from "./EnhancedTableToolbar";
+import EnhancedTableHead from "./EnhancedTableHead";
+import CustomerDetails from "./CustomerDetails";
 
 function desc(a, b, orderBy) {
 	if (b[orderBy] < a[orderBy]) {
@@ -61,179 +54,6 @@ const headCells = [
 	{ id: "phone", numeric: false, disablePadding: false, label: "Phone" }
 ];
 
-function EnhancedTableHead(props) {
-	const {
-		classes,
-		onSelectAllClick,
-		order,
-		orderBy,
-		numSelected,
-		rowCount,
-		onRequestSort
-	} = props;
-	const createSortHandler = property => event => {
-		onRequestSort(event, property);
-	};
-
-	return (
-		<TableHead>
-			<TableRow>
-				<TableCell padding="checkbox">
-					<Checkbox
-						indeterminate={numSelected > 0 && numSelected < rowCount}
-						checked={numSelected === rowCount && rowCount !== 0}
-						onChange={onSelectAllClick}
-						inputProps={{ "aria-label": "select all desserts" }}
-					/>
-				</TableCell>
-				{headCells.map(headCell => (
-					<TableCell
-						key={headCell.id}
-						align={headCell.numeric ? "right" : "left"}
-						padding={headCell.disablePadding ? "none" : "default"}
-						sortDirection={orderBy === headCell.id ? order : false}
-					>
-						<TableSortLabel
-							active={orderBy === headCell.id}
-							direction={order}
-							onClick={createSortHandler(headCell.id)}
-						>
-							{headCell.label}
-							{orderBy === headCell.id ? (
-								<span className={classes.visuallyHidden}>
-									{order === "desc" ? "sorted descending" : "sorted ascending"}
-								</span>
-							) : null}
-						</TableSortLabel>
-					</TableCell>
-				))}
-			</TableRow>
-		</TableHead>
-	);
-}
-
-EnhancedTableHead.propTypes = {
-	classes: PropTypes.object.isRequired,
-	numSelected: PropTypes.number.isRequired,
-	onRequestSort: PropTypes.func.isRequired,
-	onSelectAllClick: PropTypes.func.isRequired,
-	order: PropTypes.oneOf(["asc", "desc"]).isRequired,
-	orderBy: PropTypes.string.isRequired,
-	rowCount: PropTypes.number.isRequired
-};
-
-const useToolbarStyles = makeStyles(theme => ({
-	root: {
-		paddingLeft: theme.spacing(2),
-		paddingRight: theme.spacing(1)
-	},
-	highlight:
-		theme.palette.type === "light"
-			? {
-					color: theme.palette.secondary.main,
-					backgroundColor: lighten(theme.palette.secondary.light, 0.85)
-			  }
-			: {
-					color: theme.palette.text.primary,
-					backgroundColor: theme.palette.secondary.dark
-			  },
-	title: {
-		flex: "1 1 100%"
-	},
-	search: {
-		position: "relative",
-		borderRadius: theme.shape.borderRadius,
-		backgroundColor: fade(theme.palette.common.white, 0.15),
-		"&:hover": {
-			backgroundColor: fade(theme.palette.common.white, 0.25)
-		},
-		marginLeft: 0,
-		width: "100%",
-		[theme.breakpoints.up("sm")]: {
-			marginLeft: theme.spacing(1),
-			width: "auto"
-		}
-	},
-	searchIcon: {
-		width: theme.spacing(7),
-		height: "100%",
-		position: "absolute",
-		pointerEvents: "none",
-		display: "flex",
-		alignItems: "center",
-		justifyContent: "center"
-	},
-	inputRoot: {
-		color: "inherit"
-	},
-	inputInput: {
-		padding: theme.spacing(1, 1, 1, 7),
-		transition: theme.transitions.create("width"),
-		width: "100%",
-		[theme.breakpoints.up("sm")]: {
-			width: 120,
-			"&:focus": {
-				width: 200
-			}
-		}
-	}
-}));
-
-const EnhancedTableToolbar = props => {
-	const classes = useToolbarStyles();
-	const { numSelected, search, setSearch } = props;
-
-	return (
-		<Toolbar
-			className={clsx(classes.root, {
-				[classes.highlight]: numSelected > 0
-			})}
-		>
-			{numSelected > 0 ? (
-				<Typography
-					className={classes.title}
-					color="inherit"
-					variant="subtitle1"
-				>
-					{numSelected} selected
-				</Typography>
-			) : (
-				<Typography className={classes.title} variant="h6" id="tableTitle">
-					Customers
-				</Typography>
-			)}
-
-			{numSelected > 0 ? (
-				<Tooltip title="Delete">
-					<IconButton aria-label="delete">
-						<DeleteIcon />
-					</IconButton>
-				</Tooltip>
-			) : (
-				<div className={classes.search}>
-					<div className={classes.searchIcon}>
-						<SearchIcon />
-					</div>
-					<InputBase
-						placeholder="Search…"
-						onChange={e => setSearch(e.target.value)}
-						value={search}
-						classes={{
-							root: classes.inputRoot,
-							input: classes.inputInput
-						}}
-						inputProps={{ "aria-label": "search" }}
-					/>
-				</div>
-			)}
-		</Toolbar>
-	);
-};
-
-EnhancedTableToolbar.propTypes = {
-	numSelected: PropTypes.number.isRequired
-};
-
 const useStyles = makeStyles(theme => ({
 	root: {
 		width: "100%",
@@ -273,24 +93,62 @@ export default function Customers() {
 		Math.round(window.innerHeight / 80)
 	);
 	const [customers, setCustomers] = React.useState([]);
+	const [detailsOpen, setDetailsOpen] = React.useState(false);
+	const [selectedCustomer, setSelectedCustomer] = React.useState(null);
+	const [detailsMode, setDetailsMode] = React.useState("edit");
 
 	React.useEffect(_ => {
+		fetchCustomers();
+	}, []);
+
+	const fetchCustomers = _ => {
 		let customers = [];
 		fetch("https://customerrest.herokuapp.com/api/customers")
 			.then(resp => resp.json())
 			.then(function(data) {
-				data.content.map(c =>
-					customers.push({
-						firstname: c.firstname,
-						lastname: c.lastname,
-						city: c.city,
-						email: c.email,
-						phone: c.phone
-					})
-				);
+				data.content.map(c => customers.push(c));
 				setCustomers(customers);
 			});
-	}, []);
+	};
+
+	const editCustomer = customer => {
+		fetch(customer.links[0].href, {
+			method: "PUT",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(customer)
+		})
+			.then(resp => resp.json())
+			.then(function() {
+				fetchCustomers();
+			});
+	};
+
+	const addCustomer = customer => {
+		fetch("https://customerrest.herokuapp.com/api/customers", {
+			method: "POST",
+			headers: {
+				"Content-Type": "application/json"
+			},
+			body: JSON.stringify(customer)
+		})
+			.then(resp => resp.json())
+			.then(function() {
+				fetchCustomers();
+			});
+	};
+
+	const deleteCustomers = _ => {
+		selected.forEach(c => {
+			fetch(c.links[0].href, {
+				method: "DELETE"
+			}).then(function() {
+				fetchCustomers();
+				setSelected([]);
+			});
+		});
+	};
 
 	const handleRequestSort = (event, property) => {
 		const isDesc = orderBy === property && order === "desc";
@@ -327,6 +185,11 @@ export default function Customers() {
 		setSelected(newSelected);
 	};
 
+	const rowClick = customer => {
+		setSelectedCustomer(customer);
+		setDetailsOpen(true);
+	};
+
 	const handleChangePage = (event, newPage) => {
 		setPage(newPage);
 	};
@@ -345,6 +208,10 @@ export default function Customers() {
 					numSelected={selected.length}
 					search={search}
 					setSearch={setSearch}
+					deleteCustomers={deleteCustomers}
+					setDetailsOpen={setDetailsOpen}
+					setDetailsMode={setDetailsMode}
+					title="Customers"
 				/>
 				<div className={classes.tableWrapper}>
 					<Table
@@ -354,6 +221,7 @@ export default function Customers() {
 						aria-label="enhanced table"
 					>
 						<EnhancedTableHead
+							headCells={headCells}
 							classes={classes}
 							numSelected={selected.length}
 							order={order}
@@ -374,7 +242,10 @@ export default function Customers() {
 									.filter(c => {
 										return Object.values(c)
 											.map(val =>
-												val.toLowerCase().search(search.toLowerCase()) === -1
+												typeof val !== "string"
+													? false
+													: val.toLowerCase().search(search.toLowerCase()) ===
+													  -1
 													? false
 													: true
 											)
@@ -388,17 +259,23 @@ export default function Customers() {
 										return (
 											<TableRow
 												hover
-												onClick={event => handleClick(event, row)}
+												onClick={event =>
+													event.target.type !== "checkbox"
+														? rowClick(row)
+														: null
+												}
 												role="checkbox"
 												aria-checked={isItemSelected}
 												tabIndex={-1}
 												key={row.email}
 												selected={isItemSelected}
+												style={{ cursor: "pointer" }}
 											>
 												<TableCell padding="checkbox">
 													<Checkbox
 														checked={isItemSelected}
 														inputProps={{ "aria-labelledby": labelId }}
+														onClick={event => handleClick(event, row)}
 													/>
 												</TableCell>
 												<TableCell component="th" id={labelId} scope="row">
@@ -435,6 +312,18 @@ export default function Customers() {
 					onChangeRowsPerPage={handleChangeRowsPerPage}
 				/>
 			</Paper>
+			{selectedCustomer !== null || detailsMode === "add" ? (
+				<CustomerDetails
+					customer={selectedCustomer}
+					open={detailsOpen}
+					setOpen={setDetailsOpen}
+					editCustomer={editCustomer}
+					setSelectedCustomer={setSelectedCustomer}
+					detailsMode={detailsMode}
+					setDetailsMode={setDetailsMode}
+					addCustomer={addCustomer}
+				/>
+			) : null}
 		</div>
 	);
 }
